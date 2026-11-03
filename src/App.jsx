@@ -12,6 +12,7 @@ function App() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [currentGesture, setCurrentGesture] = useState('Waiting for Hand');
   const [handCount, setHandCount] = useState(0);
+  const [settings, setSettings] = useState({ isMuted: false, bgmEnabled: false, screenShake: true });
 
   const handleStartExperience = () => {
     setInExperience(true);
@@ -39,6 +40,8 @@ function App() {
             onReturnHome={handleReturnHome}
             currentGesture={currentGesture}
             handCount={handCount}
+            settings={settings}
+            onUpdateSettings={setSettings}
           />
 
           {/* Main Interactive Grid */}

@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, ShieldCheck, Video, Zap, Cpu, Wifi, Hand } from 'lucide-react';
+import { Activity, ShieldCheck, Video, Zap, Cpu, Wifi, Hand, Volume2, VolumeX, Music, Settings } from 'lucide-react';
+import { audioEngine } from '../utils/audioEngine';
 
-const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGesture, handCount }) => {
+const HudDisplay = ({
+  selectedPower,
+  isCameraActive,
+  onReturnHome,
+  currentGesture,
+  handCount,
+  settings = { isMuted: false, bgmEnabled: false, screenShake: true },
+  onUpdateSettings
+}) => {
   const [fps, setFps] = useState(60);
 
   // Simple pseudo FPS variance simulation for HUD realism
@@ -25,6 +34,17 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
     }
   }, [selectedPower]);
 
+  // Initialize Audio
+  useEffect(() => {
+    audioEngine.init();
+    if (settings.bgmEnabled && !settings.isMuted) {
+      audioEngine.startBgm();
+    } else {
+      audioEngine.stopBgm();
+    }
+    audioEngine.setMuted(settings.isMuted);
+  }, [settings.bgmEnabled, settings.isMuted]);
+
   return (
     <div className="hud-header glass-panel">
       {/* Brand Title */}
@@ -32,12 +52,25 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
         <Zap className="hud-logo-icon" size={24} />
         <div className="brand-text">
           <h1>GESTURE<span className="cyan-text">POWER</span></h1>
-          <span className="sub-tag">HUD V1.0 // MEDIAPIPE TRACKING</span>
+          <span className="sub-tag">HUD V1.0 // CINEMATIC ENGINE</span>
         </div>
       </div>
 
       {/* Main Indicators */}
       <div className="hud-metrics">
+        {/* Audio Controls */}
+        <div className="hud-metric-box audio-controls">
+          <span className="metric-label">AUDIO / SFX</span>
+          <div className="metric-value-group">
+            <button className="icon-btn" onClick={() => onUpdateSettings({ ...settings, isMuted: !settings.isMuted })}>
+              {settings.isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+            <button className="icon-btn" onClick={() => onUpdateSettings({ ...settings, bgmEnabled: !settings.bgmEnabled })}>
+              <Music size={16} className={settings.bgmEnabled ? 'cyan-text' : 'muted-text'} />
+            </button>
+          </div>
+        </div>
+
         {/* Selected Power Meter */}
         <div className="hud-metric-box">
           <span className="metric-label">CURRENT POWER</span>
@@ -56,6 +89,7 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
             }} />
           </div>
         </div>
+
 
         {/* Gesture Recognition Status */}
         <div className="hud-metric-box">
