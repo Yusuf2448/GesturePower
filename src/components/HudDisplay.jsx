@@ -12,6 +12,19 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
     return () => clearInterval(interval);
   }, []);
 
+  // Calculate power cooldown (mocked based on power type)
+  const [cooldown, setCooldown] = useState(100);
+  useEffect(() => {
+    if (selectedPower.id === 'blast' || selectedPower.id === 'laser') {
+      const interval = setInterval(() => {
+        setCooldown(prev => (prev >= 100 ? 0 : prev + 2));
+      }, 50);
+      return () => clearInterval(interval);
+    } else {
+      setCooldown(100);
+    }
+  }, [selectedPower]);
+
   return (
     <div className="hud-header glass-panel">
       {/* Brand Title */}
@@ -34,6 +47,14 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
               {selectedPower.name.toUpperCase()}
             </span>
           </div>
+          {/* Energy Meter */}
+          <div className="energy-meter-container">
+            <div className="energy-bar" style={{
+              width: `${cooldown}%`,
+              backgroundColor: selectedPower.color,
+              boxShadow: `0 0 10px ${selectedPower.color}`
+            }} />
+          </div>
         </div>
 
         {/* Gesture Recognition Status */}
@@ -49,11 +70,14 @@ const HudDisplay = ({ selectedPower, isCameraActive, onReturnHome, currentGestur
 
         {/* Camera Hardware Status */}
         <div className="hud-metric-box">
-          <span className="metric-label">CAMERA SENSOR</span>
+          <span className="metric-label">DETECTION STATUS</span>
           <div className="metric-value-group">
-            <Video size={16} className={isCameraActive ? 'cyan-text' : 'muted-text'} />
+            <div className="hand-status-indicators">
+              <span className={`hand-indicator ${handCount >= 1 ? 'active' : ''}`}>L</span>
+              <span className={`hand-indicator ${handCount >= 2 ? 'active' : ''}`}>R</span>
+            </div>
             <span className={`status-pill ${isCameraActive ? 'pill-active' : 'pill-standby'}`}>
-              {isCameraActive ? `LIVE (${handCount} Hand${handCount !== 1 ? 's' : ''})` : 'STANDBY MODE'}
+              {isCameraActive ? `LIVE` : 'STANDBY'}
             </span>
           </div>
         </div>
