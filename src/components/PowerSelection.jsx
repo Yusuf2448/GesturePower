@@ -61,9 +61,6 @@ const PowerSelection = ({ selectedPower, onSelectPower }) => {
   };
 
   const handleCardClick = (power) => {
-    if (power.id === 'collision') {
-      return; // Prevent locked powers from being selected or activated
-    }
     setSelectedPowerId(power.id);
     onSelectPower(power);
   };
@@ -131,8 +128,7 @@ const PowerSelection = ({ selectedPower, onSelectPower }) => {
           <h2>ARMAMENT SELECTOR</h2>
         </div>
         <span className="power-count">
-          {POWER_TYPES.filter(p => p.id !== 'collision').length} ACTIVE POWERS |
-          1 LOCKED
+          {POWER_TYPES.length} ACTIVE POWERS | 0 LOCKED
         </span>
       </div>
 
@@ -252,16 +248,6 @@ const PowerSelection = ({ selectedPower, onSelectPower }) => {
                   />
                 ))}
               </div>
-
-              {/* Locked state for collision power */}
-              {power.id === 'collision' && (
-                <div className="locked-overlay">
-                  <div className="locked-content">
-                    <Dices size={32} color="rgba(255, 255, 255, 0.3)" />
-                    <span>Locked - Complete Training to Unlock</span>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}

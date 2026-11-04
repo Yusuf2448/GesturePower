@@ -86,13 +86,22 @@ const CinematicPowerSelector = ({ selectedPower, onSelectPower, settings }) => {
       effect: 'Creates defensive field redirecting attacks',
       gesture: 'Shield Formation',
       audio: 'collision'
+    },
+    {
+      id: 'shield',
+      name: 'Energy Shield',
+      description: 'Creates a reinforced barrier protecting you from all incoming threats',
+      icon: '🛡️',
+      color: '#0072ff',
+      category: 'defensive',
+      effect: 'Creates a reinforced barrier protecting you from all incoming threats',
+      gesture: 'Two-Handed Shield',
+      audio: 'shield'
     }
   ];
 
   // Handle power selection with cinematic transition
   const handlePowerSelect = (power) => {
-    if (power.id === 'collision') return; // Locked power
-
     setIsTransitioning(true);
     setSelectedPowerId(power.id);
 
@@ -102,7 +111,7 @@ const CinematicPowerSelector = ({ selectedPower, onSelectPower, settings }) => {
     }
 
     // Trigger screen shake for heavy powers
-    if (settings?.screenShake && (power.id === 'blast' || power.id === 'portal' || power.id === 'lightning')) {
+    if (settings?.screenShake && (power.id === 'blast' || power.id === 'portal' || power.id === 'lightning' || power.id === 'collision' || power.id === 'shield')) {
       window.dispatchEvent(new CustomEvent('triggerScreenShake', {
         detail: { intensity: 15, duration: 500 }
       }));
@@ -211,13 +220,10 @@ const CinematicPowerSelector = ({ selectedPower, onSelectPower, settings }) => {
               onMouseEnter={() => setHoveredPower(power.id)}
               onMouseLeave={() => setHoveredPower(null)}
             >
-              {/* Locked overlay for collision power */}
-              {power.id === 'collision' && (
-                <div className="locked-overlay">
-                  <div className="lock-icon">🔒</div>
-                  <span>Locked - Complete Training</span>
-                </div>
-              )}
+              {/* No longer locked */}
+              <div className="power-select-indicator">
+                <Zap size={10} style={{ color: power.color }} />
+              </div>
 
               {/* Power Icon */}
               <div className="power-icon-container">
