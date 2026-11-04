@@ -78,6 +78,13 @@ const CameraPreview = ({ isCameraActive, onToggleCamera, selectedPower, onGestur
   const referenceHandSizesRef = useRef({}); // {handId: {palmSize, depthReference}}
   const currentHandDepthsRef = useRef({}); // {handId: {depth, palmSize}}
 
+  // Cinematic state refs
+  const cinematicEffectsRef = useRef({
+    particles: [],
+    shockwaves: [],
+    screenShake: { active: false, intensity: 0, startTime: 0 }
+  });
+
   // Initialize MediaPipe HandLandmarker
   useEffect(() => {
     let isMounted = true;
@@ -180,6 +187,12 @@ const CameraPreview = ({ isCameraActive, onToggleCamera, selectedPower, onGestur
       referenceHandSizesRef.current = {};
       currentHandDepthsRef.current = {};
       prevWristPosRef.current = {};
+      // Clear cinematic effects when camera stops
+      cinematicEffectsRef.current = {
+        particles: [],
+        shockwaves: [],
+        screenShake: { active: false, intensity: 0, startTime: 0 }
+      };
     }
 
     return () => {
@@ -567,13 +580,18 @@ const CameraPreview = ({ isCameraActive, onToggleCamera, selectedPower, onGestur
                     else ctx.lineTo(hx, hy);
                   }
                   ctx.closePath();
-                  ctx.fillStyle = 'rgba(0, 114, 255, 0.2)';
+                  const shieldFill = ctx.createRadialGradient(midX, midY, shieldRadius * 0.4, midX, midY, shieldRadius);
+                  shieldFill.addColorStop(0, 'rgba(0, 114, 255, 0.45)');
+                  shieldFill.addColorStop(0.5, 'rgba(0, 114, 255, 0.25)');
+                  shieldFill.addColorStop(1, 'rgba(0, 114, 255, 0.05)');
+                  ctx.fillStyle = shieldFill;
                   ctx.fill();
+                  ctx.globalAlpha = 0.85;
                   ctx.stroke();
 
                   ctx.beginPath();
                   ctx.arc(midX, midY, shieldRadius * 0.6, 0, Math.PI * 2);
-                  ctx.strokeStyle = '#ffffff';
+                  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
                   ctx.stroke();
                   ctx.restore();
                 }
@@ -581,63 +599,127 @@ const CameraPreview = ({ isCameraActive, onToggleCamera, selectedPower, onGestur
                 // Advanced Dimensional Portal
                 if (selectedPower.id === 'portal') {
                   ctx.save();
-                  const portalRadius = Math.max(60, handsDist * 0.6);
+                  const portalRadius = Math.max(70, handsDist * 0.65);
                   const time = performance.now() * 0.003;
 
-                  // Cosmic dimensional portal with multiple layers
-                  // Layer 1: Central Core
-                  const coreGrad = ctx.createRadialGradient(midX, midY, 0, midX, midY, portalRadius * 0.3);
-                  coreGrad.addColorStop(0, '#ffffff');
-                  coreGrad.addColorStop(0.3, '#c0a0ff');
-                  coreGrad.addColorStop(1, 'transparent');
-                  ctx.fillStyle = coreGrad;
+                  // 1. Outer Deep Cosmic Void Glow (Fading gradient outwards)
+                  const voidGrad = ctx.createRadialGradient(midX, midY, 0, midX, midY, portalRadius * 1.4);
+                  voidGrad.addColorStop(0, 'rgba(0, 240, 255, 0.5)');
+                  voidGrad.addColorStop(0.3, 'rgba(157, 78, 221, 0.35)');
+                  voidGrad.addColorStop(0.7, 'rgba(0, 240, 255, 0.15)');
+                  voidGrad.addColorStop(1, 'transparent');
+                  ctx.fillStyle = voidGrad;
                   ctx.beginPath();
-                  ctx.arc(midX, midY, portalRadius * 0.3, 0, Math.PI * 2);
+                  ctx.arc(midX, midY, portalRadius * 1.4, 0, Math.PI * 2);
                   ctx.fill();
 
-                  // Layer 2: Inner Vortex Rings
-                  for (let i = 0; i < 5; i++) {
-                    const ringRadius = portalRadius * (0.2 + i * 0.15);
-                    ctx.strokeStyle = `rgba(100, 200, 255, ${0.3 - i * 0.05})`;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(midX + Math.sin(time + i) * 20, midY + Math.cos(time + i) * 20, ringRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-                  }
-
-                  // Layer 3: Nebula clouds
-                  const nebulaGrad = ctx.createRadialGradient(midX, midY, portalRadius * 0.5, midX, midY, portalRadius);
-                  nebulaGrad.addColorStop(0, 'rgba(150, 100, 255, 0.2)');
-                  nebulaGrad.addColorStop(0.5, 'rgba(100, 150, 255, 0.1)');
-                  nebulaGrad.addColorStop(1, 'transparent');
-                  ctx.fillStyle = nebulaGrad;
+                  // 2. Swirling Galaxy Tunnel (Deep dark center with decreasing opacity outward)
+                  const galaxyFill = ctx.createRadialGradient(midX, midY, portalRadius * 0.1, midX, midY, portalRadius * 0.95);
+                  galaxyFill.addColorStop(0, 'rgba(2, 0, 16, 0.95)');
+                  galaxyFill.addColorStop(0.5, 'rgba(5, 2, 26, 0.6)');
+                  galaxyFill.addColorStop(1, 'rgba(5, 2, 26, 0.15)');
+                  ctx.fillStyle = galaxyFill;
                   ctx.beginPath();
                   ctx.arc(midX, midY, portalRadius, 0, Math.PI * 2);
                   ctx.fill();
 
-                  // Layer 4: Outer Energy Rings
-                  for (let i = 0; i < 3; i++) {
-                    const ringRadius = portalRadius * (1 - i * 0.2);
-                    ctx.strokeStyle = i === 0 ? '#00ffff' : i === 1 ? '#9933ff' : '#6633ff';
-                    ctx.lineWidth = 3;
-                    ctx.shadowColor = ctx.strokeStyle;
-                    ctx.shadowBlur = 15;
+                  // Spiral galaxy arms inside tunnel (Fading towards edge)
+                  for (let arm = 0; arm < 4; arm++) {
+                    ctx.save();
+                    ctx.translate(midX, midY);
+                    ctx.rotate(time * 1.5 + (arm * Math.PI / 2));
+                    const spiralGrad = ctx.createLinearGradient(0, 0, portalRadius, portalRadius);
+                    spiralGrad.addColorStop(0, 'rgba(0, 240, 255, 0.8)');
+                    spiralGrad.addColorStop(0.5, 'rgba(157, 78, 221, 0.4)');
+                    spiralGrad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+                    ctx.strokeStyle = spiralGrad;
+                    ctx.lineWidth = 6;
                     ctx.beginPath();
-                    ctx.arc(midX, midY, ringRadius, time * (1 + i * 0.3), time * (1 + i * 0.3) + Math.PI * 2);
+                    for (let r = 5; r < portalRadius; r += 5) {
+                      const th = r * 0.1;
+                      const sx = Math.cos(th) * r;
+                      const sy = Math.sin(th) * r;
+                      if (r === 5) ctx.moveTo(sx, sy);
+                      else ctx.lineTo(sx, sy);
+                    }
                     ctx.stroke();
+                    ctx.restore();
                   }
 
-                  // Layer 5: Particle Field
-                  for (let i = 0; i < 20; i++) {
-                    const particleAngle = time * 2 + i * Math.PI * 2 / 20;
-                    const particleRadius = portalRadius * (0.3 + 0.7 * Math.sin(time + i));
-                    const px = midX + Math.cos(particleAngle) * particleRadius;
-                    const py = midY + Math.sin(particleAngle) * particleRadius;
-                    ctx.fillStyle = '#ffffff';
+                  // 3. Bright Central Singularity Core (Fully Opaque Core, Fading to Edge)
+                  const coreGrad = ctx.createRadialGradient(midX, midY, 0, midX, midY, portalRadius * 0.35);
+                  coreGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+                  coreGrad.addColorStop(0.3, 'rgba(0, 240, 255, 0.95)');
+                  coreGrad.addColorStop(0.7, 'rgba(157, 78, 221, 0.6)');
+                  coreGrad.addColorStop(1, 'rgba(157, 78, 221, 0)');
+                  ctx.fillStyle = coreGrad;
+                  ctx.beginPath();
+                  ctx.arc(midX, midY, portalRadius * 0.35, 0, Math.PI * 2);
+                  ctx.fill();
+
+                  // 4. Multiple Intricate Rotating Geometric Rings (Inner rings more opaque than outer rings)
+                  const ringConfigs = [
+                    { radiusFactor: 0.95, color: 'rgba(0, 240, 255, 0.35)', lineWidth: 4, speed: -1.2, dashes: [15, 10] },
+                    { radiusFactor: 0.8, color: 'rgba(189, 0, 255, 0.5)', lineWidth: 3, speed: 1.8, dashes: [20, 15, 5, 15] },
+                    { radiusFactor: 0.65, color: 'rgba(255, 255, 255, 0.7)', lineWidth: 2, speed: -2.5, dashes: [8, 8] },
+                    { radiusFactor: 0.5, color: 'rgba(0, 255, 127, 0.85)', lineWidth: 3, speed: 2.0, dashes: [30, 20] }
+                  ];
+
+                  ringConfigs.forEach((cfg, idx) => {
+                    ctx.save();
+                    ctx.translate(midX, midY);
+                    ctx.rotate(time * cfg.speed + idx);
+                    ctx.strokeStyle = cfg.color;
+                    ctx.lineWidth = cfg.lineWidth;
+                    ctx.shadowColor = cfg.color;
+                    ctx.shadowBlur = 20;
+                    if (cfg.dashes && ctx.setLineDash) {
+                      ctx.setLineDash(cfg.dashes);
+                    }
                     ctx.beginPath();
-                    ctx.arc(px, py, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.arc(0, 0, portalRadius * cfg.radiusFactor, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                  });
+
+                  // 5. Neon Energy Arcs (Electric lightning with soft opacity)
+                  ctx.save();
+                  ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+                  ctx.lineWidth = 2.5;
+                  ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
+                  ctx.shadowBlur = 15;
+                  for (let a = 0; a < 6; a++) {
+                    const angle1 = time * 3 + (a * Math.PI / 3);
+                    const angle2 = angle1 + 0.4;
+                    const r1 = portalRadius * 0.9;
+                    const r2 = portalRadius * 1.05;
+                    ctx.beginPath();
+                    ctx.moveTo(midX + Math.cos(angle1) * r1, midY + Math.sin(angle1) * r1);
+                    ctx.lineTo(midX + Math.cos(angle2) * r2, midY + Math.sin(angle2) * r2);
+                    ctx.stroke();
                   }
+                  ctx.restore();
+
+                  // 6. Sparkling Cosmic Particles (Fade out toward outer edges)
+                  for (let i = 0; i < 35; i++) {
+                    const pAngle = time * 2.5 + (i * 137.5 * Math.PI / 180); // Golden ratio distribution
+                    const pDist = portalRadius * (0.2 + 0.8 * ((i * 17) % 100) / 100);
+                    const px = midX + Math.cos(pAngle) * pDist;
+                    const py = midY + Math.sin(pAngle) * pDist;
+                    const pSize = 1 + (i % 3);
+
+                    const particleOpacity = Math.max(0.1, 1 - (pDist / (portalRadius * 1.1)));
+                    ctx.save();
+                    ctx.globalAlpha = particleOpacity;
+                    ctx.fillStyle = i % 2 === 0 ? '#00f0ff' : '#ffffff';
+                    ctx.shadowColor = ctx.fillStyle;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                  }
+
                   ctx.restore();
                 }
 

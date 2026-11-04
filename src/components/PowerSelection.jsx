@@ -20,7 +20,7 @@ const PowerSelection = ({ selectedPower, onSelectPower }) => {
       case 'Focused':
         return <Shield size={14} color="#00f0ff" />;
       case 'Defensive':
-        return <Sparkles size={14} color="#9d4edd" />;
+        return <Shield size={14} color="#0072ff" />;
       case 'Mystical':
         return <Dices size={14} color="#ffffff" />;
       default:
@@ -132,7 +132,7 @@ const PowerSelection = ({ selectedPower, onSelectPower }) => {
         </div>
         <span className="power-count">
           {POWER_TYPES.filter(p => p.id !== 'collision').length} ACTIVE POWERS |
-          {POWER_TYPES.filter(p => p.id === 'collision').length} LOCKED
+          1 LOCKED
         </span>
       </div>
 
