@@ -57,7 +57,7 @@ Built with React, Vite and MediaPipe, GesturePower lets you control energy, ligh
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/GesturePower.git
+git clone https://github.com/Yusuf2448/GesturePower.git
 ```
 
 Navigate to the project:
